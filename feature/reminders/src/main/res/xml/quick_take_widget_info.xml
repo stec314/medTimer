@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:description="@string/quick_take_widget"
+    android:initialKeyguardLayout="@layout/quick_take_widget"
+    android:initialLayout="@layout/quick_take_widget"
+    android:minWidth="40dp"
+    android:minHeight="40dp"
+    android:previewLayout="@layout/quick_take_widget"
+    android:resizeMode="none"
+    android:targetCellWidth="1"
+    android:targetCellHeight="1"
+    android:updatePeriodMillis="3600000"
+    android:widgetCategory="home_screen"
+    tools:targetApi="31" />

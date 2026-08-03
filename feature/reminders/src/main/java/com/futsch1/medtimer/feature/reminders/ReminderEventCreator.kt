@@ -1,15 +1,10 @@
-package com.futsch1.medtimer.feature.ui.overview.actions
+package com.futsch1.medtimer.feature.reminders
 
-import com.futsch1.medtimer.core.common.di.Dispatcher
-import com.futsch1.medtimer.core.common.di.MedTimerDispatchers
 import com.futsch1.medtimer.core.domain.model.ReminderEvent
 import com.futsch1.medtimer.core.domain.model.ScheduledReminder
 import com.futsch1.medtimer.core.domain.repository.ReminderEventRepository
 import com.futsch1.medtimer.core.domain.repository.ReminderRepository
 import com.futsch1.medtimer.core.ui.TimeFormatter
-import com.futsch1.medtimer.feature.reminders.ReminderNotificationProcessor
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 

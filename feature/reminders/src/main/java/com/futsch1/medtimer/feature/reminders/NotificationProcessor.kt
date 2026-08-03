@@ -153,9 +153,15 @@ class NotificationProcessor @Inject constructor(
     private data class StockHandlingResult(val stockHandled: Boolean, val stockChange: StockChange?)
 
     private suspend fun doStockHandling(status: ReminderEvent.ReminderStatus, reminderEvent: ReminderEvent, processedTime: Instant): StockHandlingResult {
-        if (!reminderEvent.stockHandled && status == ReminderEvent.ReminderStatus.TAKEN ||
+        val transitionNeeded = !reminderEvent.stockHandled && status == ReminderEvent.ReminderStatus.TAKEN ||
             reminderEvent.stockHandled && status == ReminderEvent.ReminderStatus.SKIPPED
-        ) {
+        if (transitionNeeded) {
+            // Atomically claim the transition so a concurrent duplicate action on the same event (e.g. a
+            // double tap on the notification's "taken" button) cannot decrement stock twice.
+            val claimed = reminderEventRepository.tryClaimStockHandling(reminderEvent.reminderEventId, reminderEvent.stockHandled)
+            if (!claimed) {
+                return StockHandlingResult(!reminderEvent.stockHandled, null)
+            }
             val reminder = reminderRepository.fetch(reminderEvent.reminderId) ?: return StockHandlingResult(false, null)
             var amount = MedicineHelper.parseAmount(reminderEvent.amount) ?: return StockHandlingResult(false, null)
             if (status == ReminderEvent.ReminderStatus.SKIPPED) {

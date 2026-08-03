@@ -118,11 +118,21 @@ class ReminderEventActions @AssistedInject constructor(
     }
 
     private suspend fun undoStock(reminderEvent: ReminderEvent) {
-        if (reminderEvent.stockHandled) {
-            val amount = MedicineHelper.parseAmount(reminderEvent.amount) ?: return
-            val reminder = reminderRepository.fetch(reminderEvent.reminderId) ?: return
-            medicineRepository.decreaseStock(reminder.medicineRelId, -amount)
+        if (!reminderEvent.stockHandled) {
+            return
         }
+        val amount = MedicineHelper.parseAmount(reminderEvent.amount) ?: return
+        val medicineId = resolveMedicineId(reminderEvent) ?: return
+        medicineRepository.decreaseStock(medicineId, -amount)
+    }
+
+    private suspend fun resolveMedicineId(reminderEvent: ReminderEvent): Int? {
+        reminderRepository.fetch(reminderEvent.reminderId)?.let { return it.medicineRelId }
+        // Manual/"as needed" doses aren't linked to a reminder (reminderId == -1), so there is no
+        // stable reference to the medicine on the event. Fall back to matching by name, but only
+        // when it's unambiguous — restoring the wrong medicine's stock would be worse than not
+        // restoring it at all.
+        return medicineRepository.getAll().filter { it.name == reminderEvent.medicineName }.singleOrNull()?.id
     }
 
     private fun processDeleteReminderEvent(reminderEvent: ReminderEvent) {

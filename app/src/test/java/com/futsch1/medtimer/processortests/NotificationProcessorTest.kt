@@ -4,12 +4,14 @@ import android.app.AlarmManager
 import android.app.NotificationManager
 import com.futsch1.medtimer.core.datastore.di.DatastoreModule
 import com.futsch1.medtimer.core.domain.model.ReminderEvent
+import com.futsch1.medtimer.database.MedicineEntity
 import com.futsch1.medtimer.database.ReminderEventEntity
 import com.futsch1.medtimer.database.dao.MedicineDao
 import com.futsch1.medtimer.database.dao.ReminderDao
 import com.futsch1.medtimer.database.dao.ReminderEventDao
 import com.futsch1.medtimer.database.dao.TagDao
 import com.futsch1.medtimer.database.di.DatabaseModule
+import com.futsch1.medtimer.database.toModel.toEntity
 import com.futsch1.medtimer.feature.reminders.NotificationProcessor
 import com.futsch1.medtimer.feature.reminders.di.TimeAccessModule
 import com.futsch1.medtimer.feature.reminders.notificationData.ProcessedNotificationData
@@ -17,6 +19,7 @@ import com.futsch1.medtimer.feature.reminders.notificationData.ReminderNotificat
 import com.futsch1.medtimer.feature.reminders.notificationData.ReminderNotificationData
 import com.futsch1.medtimer.feature.reminders.notificationData.ReminderNotificationFactory
 import com.futsch1.medtimer.feature.reminders.notificationData.ReminderNotificationPart
+import com.futsch1.medtimer.schedulertests.TestHelper
 import dagger.hilt.android.testing.BindValue
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -212,5 +215,29 @@ class NotificationProcessorTest {
         verify(testReminderContext.notificationManagerFake.mock, times(1)).notify(eq(1), any())
         // First reminder still raised
         assertEquals(ReminderEventEntity.ReminderEntityStatus.RAISED, testReminderContext.repositoryFakes.reminderEvents[0].status)
+    }
+
+    @Test
+    fun duplicateTakenActionDoesNotDoubleDecrementStock() {
+        testReminderContext.instant = Instant.ofEpochSecond(10)
+        testReminderContext.repositoryFakes.medicines.add(MedicineEntity("Test").also {
+            it.medicineId = 1
+            it.amount = 10.0
+        })
+        testReminderContext.repositoryFakes.reminders.add(TestHelper.buildReminder(1, 1, "1", 600, 1).toEntity())
+        val reminderEvent = TestHelper.buildReminderEvent(1, 0, 1).copy(amount = "1")
+        testReminderContext.repositoryFakes.reminderEvents.add(reminderEvent.toEntity())
+
+        runBlocking {
+            // Simulate two "taken" actions racing on the same not-yet-persisted event (e.g. a double
+            // tap on the notification button): both start from the same stockHandled = false snapshot.
+            notificationProcessor.setReminderEventStatus(
+                ReminderEvent.ReminderStatus.TAKEN,
+                listOf(reminderEvent, reminderEvent)
+            )
+        }
+
+        // Stock must be decremented only once, not twice
+        assertEquals(9.0, testReminderContext.repositoryFakes.medicines[0].amount)
     }
 }

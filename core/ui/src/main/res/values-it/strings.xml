@@ -73,6 +73,9 @@
     <string name="widget_disabled_privacy">Widget disabilitati per la privacy — apri l\'app per visualizzare i promemoria</string>
     <string name="recent_events">Eventi recenti</string>
     <string name="next_reminders">Prossimi promemoria</string>
+    <string name="quick_take_widget">Assunzione rapida</string>
+    <string name="quick_take_widget_description_medicine">Segna %s come assunto</string>
+    <string name="quick_take_widget_description">Nessun promemoria imminente — apri MedTimer</string>
     <string name="all_taken">Tutti assunti (%s)</string>
     <string name="app_url">MedTimer su GitHub</string>
     <string name="tab_settings">Impostazioni</string>

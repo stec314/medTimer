@@ -101,4 +101,8 @@ class ReminderEventRepositoryImpl(
     override suspend fun decreaseRepeats(reminderEventId: Int) {
         reminderEventDao.decreaseRepeats(reminderEventId)
     }
+
+    override suspend fun tryClaimStockHandling(reminderEventId: Int, expectedCurrent: Boolean): Boolean {
+        return reminderEventDao.compareAndSetStockHandled(reminderEventId, expectedCurrent, !expectedCurrent) > 0
+    }
 }

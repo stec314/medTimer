@@ -7,6 +7,7 @@ object ActivityCodes {
     const val EXTRA_MEDICINE_ID: String = "com.futsch1.medtimer.MEDICINE_ID"
     const val EXTRA_REMINDER_EVENT_ID_LIST: String = "com.futsch1.medtimer.REMINDER_EVENT_ID_LIST"
     const val EXTRA_REMINDER_ID_LIST: String = "com.futsch1.medtimer.REMINDER_ID_LIST"
+    const val EXTRA_REMINDER_ID: String = "com.futsch1.medtimer.REMINDER_ID"
     const val EXTRA_REMIND_INSTANT: String = "com.futsch1.medtimer.REMIND_INSTANT"
 
     const val VARIABLE_AMOUNT_ACTIVITY: String = "com.futsch1.medtimer.VARIABLE_AMOUNT_ACTIVITY"
@@ -23,7 +24,8 @@ enum class ProcessorCode(val action: String) {
     ShowReminderNotification("com.futsch1.medtimer.SHOW_REMINDER_NOTIFICATION"),
     StockHandling("com.futsch1.medtimer.STOCK_HANDLING"),
     Schedule("com.futsch1.medtimer.SCHEDULE"),
-    LocationSnooze("com.futsch1.medtimer.LOCATION_SNOOZE");
+    LocationSnooze("com.futsch1.medtimer.LOCATION_SNOOZE"),
+    QuickTake("com.futsch1.medtimer.QUICK_TAKE_ACTION");
 
     companion object {
         private val actionMap = entries.associateBy { it.action }

@@ -37,6 +37,9 @@ interface ReminderEventDao {
     @Query("SELECT * FROM ReminderEvent WHERE reminderId = :reminderId AND remindedTimestamp = :remindedTimestamp")
     suspend fun fetch(reminderId: Int, remindedTimestamp: Long): ReminderEventEntity?
 
+    @Query("UPDATE ReminderEvent SET stockHandled = :newValue WHERE reminderEventId = :reminderEventId AND stockHandled = :expectedCurrent")
+    suspend fun compareAndSetStockHandled(reminderEventId: Int, expectedCurrent: Boolean, newValue: Boolean): Int
+
     @Insert
     suspend fun create(reminderEvent: ReminderEventEntity): Long
 

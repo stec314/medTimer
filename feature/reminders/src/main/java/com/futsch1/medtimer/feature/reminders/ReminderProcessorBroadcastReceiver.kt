@@ -11,6 +11,9 @@ import com.futsch1.medtimer.core.common.ProcessorCode
 import com.futsch1.medtimer.core.common.di.ApplicationScope
 import com.futsch1.medtimer.core.domain.model.Reminder
 import com.futsch1.medtimer.core.domain.model.ReminderEvent
+import com.futsch1.medtimer.core.domain.model.ScheduledReminder
+import com.futsch1.medtimer.core.domain.repository.MedicineRepository
+import com.futsch1.medtimer.core.domain.repository.ReminderRepository
 import com.futsch1.medtimer.feature.reminders.notificationData.ProcessedNotificationData
 import com.futsch1.medtimer.feature.reminders.notificationData.ReminderNotificationData
 import dagger.hilt.android.AndroidEntryPoint
@@ -54,6 +57,15 @@ class ReminderProcessorBroadcastReceiver : BroadcastReceiver() {
 
     @Inject
     lateinit var stockHandlingProcessor: StockHandlingProcessor
+
+    @Inject
+    lateinit var reminderRepository: ReminderRepository
+
+    @Inject
+    lateinit var medicineRepository: MedicineRepository
+
+    @Inject
+    lateinit var reminderEventCreator: ReminderEventCreator
 
     @Inject
     @ApplicationScope
@@ -109,6 +121,7 @@ class ReminderProcessorBroadcastReceiver : BroadcastReceiver() {
                     ProcessorCode.StockHandling -> processStockHandling(intent)
                     ProcessorCode.Schedule -> scheduleNextReminderNotificationProcessor.scheduleNextReminder()
                     ProcessorCode.LocationSnooze -> snoozeProcessor.processLocationSnooze(ReminderNotificationData.fromBundle(intent.extras ?: Bundle()))
+                    ProcessorCode.QuickTake -> processQuickTake(context, intent)
                 }
             } finally {
                 pendingResult.finish()
@@ -136,6 +149,19 @@ class ReminderProcessorBroadcastReceiver : BroadcastReceiver() {
         val medicineId = intent.getIntExtra(ActivityCodes.EXTRA_MEDICINE_ID, 0)
         val processedInstant = Instant.ofEpochSecond(intent.getLongExtra(ActivityCodes.EXTRA_REMIND_INSTANT, 0))
         stockHandlingProcessor.processStock(amount, medicineId, processedInstant)
+    }
+
+    private suspend fun processQuickTake(context: Context, intent: Intent) {
+        val reminderId = intent.getIntExtra(ActivityCodes.EXTRA_REMINDER_ID, -1)
+        val remindInstant = Instant.ofEpochSecond(intent.getLongExtra(ActivityCodes.EXTRA_REMIND_INSTANT, 0))
+        if (reminderId == -1) {
+            return
+        }
+        val reminder = reminderRepository.fetch(reminderId) ?: return
+        val medicine = medicineRepository.fetch(reminder.medicineRelId) ?: return
+        val scheduledReminder = ScheduledReminder(medicine, reminder, remindInstant)
+        val reminderEvent = reminderEventCreator.getOrCreateReminderEvent(scheduledReminder, remindInstant.epochSecond)
+        requestReminderAction(context, reminder, reminderEvent, taken = true)
     }
 
     companion object {

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/quickTakeWidget"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/app_widget_background"
+    android:theme="@style/Theme.MedTimer.WidgetContainer">
+
+    <ImageView
+        android:id="@+id/quickTakeIcon"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="8dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/capsule"
+        android:tint="?attr/colorPrimary" />
+
+</FrameLayout>

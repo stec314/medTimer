@@ -23,6 +23,9 @@ class WidgetUpdateReceiver : BroadcastReceiver() {
     lateinit var latestRemindersWidgetProvider: LatestRemindersWidgetProvider
 
     @Inject
+    lateinit var quickTakeWidgetProvider: QuickTakeWidgetProvider
+
+    @Inject
     @ApplicationScope
     lateinit var applicationScope: CoroutineScope
 
@@ -55,6 +58,14 @@ class WidgetUpdateReceiver : BroadcastReceiver() {
                 performWidgetUpdate(
                     latestRemindersWidgetProvider.getWidgetImpl(context), appWidgetIdsLatestReminders, appWidgetManager
                 )
+
+                val appWidgetIdsQuickTake = appWidgetManager.getAppWidgetIds(
+                    ComponentName(
+                        context,
+                        QuickTakeWidgetProvider::class.java
+                    )
+                )
+                quickTakeWidgetProvider.refreshWidgets(context, appWidgetManager, appWidgetIdsQuickTake)
             } finally {
                 pendingResult.finish()
             }

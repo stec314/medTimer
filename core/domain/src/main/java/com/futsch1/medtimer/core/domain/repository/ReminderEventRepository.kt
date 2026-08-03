@@ -23,6 +23,13 @@ interface ReminderEventRepository {
     suspend fun fetch(reminderId: Int, remindedTimestamp: Long): ReminderEvent?
     suspend fun update(reminderEvent: ReminderEvent)
     suspend fun updateAll(reminderEvents: List<ReminderEvent>)
+
+    /**
+     * Atomically flips [ReminderEvent.stockHandled] from [expectedCurrent] to its opposite, returning
+     * whether this call won the race. Used to guard stock mutation against concurrent duplicate
+     * "taken"/"skipped" actions on the same event (e.g. a double notification-action tap).
+     */
+    suspend fun tryClaimStockHandling(reminderEventId: Int, expectedCurrent: Boolean): Boolean
     suspend fun delete(reminderEvent: ReminderEvent)
     suspend fun deleteAll()
     suspend fun decreaseRepeats(reminderEventId: Int)

@@ -110,3 +110,11 @@ fun getRequestScheduleIntent(context: Context): Intent {
     intent.setClass(context, ReminderProcessorBroadcastReceiver::class.java)
     return intent
 }
+
+fun getQuickTakeIntent(context: Context, reminderId: Int, remindInstantEpochSeconds: Long): Intent {
+    val intent = Intent(ProcessorCode.QuickTake.action)
+    intent.setClass(context, ReminderProcessorBroadcastReceiver::class.java)
+    intent.putExtra(ActivityCodes.EXTRA_REMINDER_ID, reminderId)
+    intent.putExtra(ActivityCodes.EXTRA_REMIND_INSTANT, remindInstantEpochSeconds)
+    return intent
+}

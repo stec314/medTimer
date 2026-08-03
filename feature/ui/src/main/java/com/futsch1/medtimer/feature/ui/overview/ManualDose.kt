@@ -153,20 +153,21 @@ class ManualDose @AssistedInject constructor(
         val localDateTime = LocalTime.now()
         timePickerDialogFactory.create(localDateTime) { minutes: Int ->
             val remindedInstant: Instant = TimeHelper.instantFromDateAndMinutes(minutes, date)
+            val amount = if (medicineId != -1) MedicineHelper.parseAmount(reminderEvent.amount) else null
+
             activity.lifecycleScope.launch {
                 reminderEventRepository.create(
                     reminderEvent.copy(
                         remindedTimestamp = remindedInstant,
-                        processedTimestamp = remindedInstant
+                        processedTimestamp = remindedInstant,
+                        // Recorded up front since the actual decrement below is a fire-and-forget
+                        // broadcast: without this, deleting/editing this event later could never
+                        // restore the stock it decremented (see ReminderEventActions.undoStock).
+                        stockHandled = amount != null
                     )
                 )
             }
 
-            if (medicineId == -1) {
-                return@create
-            }
-
-            val amount = MedicineHelper.parseAmount(reminderEvent.amount)
             if (amount != null) {
                 ReminderProcessorBroadcastReceiver.requestStockHandling(
                     context,

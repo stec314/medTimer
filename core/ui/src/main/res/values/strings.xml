@@ -70,6 +70,9 @@
     <string name="widget_disabled_privacy">Widgets disabled for privacy — open app to view reminders</string>
     <string name="recent_events">Recent events</string>
     <string name="next_reminders">Next reminders</string>
+    <string name="quick_take_widget">Quick take</string>
+    <string name="quick_take_widget_description_medicine">Mark %s as taken</string>
+    <string name="quick_take_widget_description">No upcoming reminder — open MedTimer</string>
     <string name="all_taken">All taken (%s)</string>
     <string name="preview_next_reminders_widget_line" translatable="false">12:00: 1 Selen (200 µg)</string>
     <string name="preview_latest_reminders_widget_line" translatable="false">12:00: Taken 1 Selen (200 µg)</string>

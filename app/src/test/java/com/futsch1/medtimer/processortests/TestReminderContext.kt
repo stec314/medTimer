@@ -26,6 +26,7 @@ import com.futsch1.medtimer.database.toModel.toEntity
 import com.futsch1.medtimer.database.toModel.toModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
+import org.mockito.ArgumentMatchers.anyDouble
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.anyList
 import org.mockito.Mockito.`when`
@@ -52,6 +53,17 @@ class RepositoryFakes {
             val medicine = it.arguments[0] as com.futsch1.medtimer.core.domain.model.Medicine
             val index = medicines.indexOfFirst { m -> m.medicineId == medicine.id }
             if (index >= 0) medicines[index] = medicine.toEntity()
+        }
+        `when`(runBlocking { medicineRepositoryMock.decreaseStock(anyInt(), anyDouble()) }).thenAnswer {
+            val medicineId = it.arguments[0] as Int
+            val decreaseAmount = it.arguments[1] as Double
+            val index = medicines.indexOfFirst { m -> m.medicineId == medicineId }
+            if (index >= 0) {
+                medicines[index].amount = maxOf(0.0, medicines[index].amount - decreaseAmount)
+                buildMedicines().firstOrNull { m -> m.id == medicineId }
+            } else {
+                null
+            }
         }
 
         // ReminderRepository mocks
@@ -86,6 +98,17 @@ class RepositoryFakes {
             val index = reminderEvents.indexOfFirst { e -> e.reminderEventId == reminderEventId }
             if (index >= 0) {
                 reminderEvents[index].remainingRepeats--
+            }
+        }
+        `when`(runBlocking { reminderEventRepositoryMock.tryClaimStockHandling(anyInt(), any()) }).thenAnswer {
+            val reminderEventId = it.arguments[0] as Int
+            val expectedCurrent = it.arguments[1] as Boolean
+            val index = reminderEvents.indexOfFirst { e -> e.reminderEventId == reminderEventId }
+            if (index >= 0 && reminderEvents[index].stockHandled == expectedCurrent) {
+                reminderEvents[index].stockHandled = !expectedCurrent
+                true
+            } else {
+                false
             }
         }
     }
