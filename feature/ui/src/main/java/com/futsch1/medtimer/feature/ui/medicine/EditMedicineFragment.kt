@@ -157,12 +157,26 @@ class EditMedicineFragment : Fragment(), IconDialog.Callback {
         super.onStop()
         if (fragmentReady) {
             applicationScope.launch {
-                val (newMedicine, updatedReminders) = withContext(mainDispatcher) {
-                    Pair(buildMedicine(), collectUpdatedReminders())
+                val (editedFields, updatedReminders) = withContext(mainDispatcher) {
+                    Pair(collectEditedFields(), collectUpdatedReminders())
                 }
                 updatedReminders.forEach { reminderRepository.update(it) }
-                if (medicine != newMedicine && newMedicine != null) {
-                    medicineRepository.update(newMedicine)
+
+                // Re-fetch instead of writing back the in-memory `medicine` snapshot taken when this
+                // fragment was created: that snapshot goes stale the moment stock, or anything else,
+                // changes elsewhere (e.g. the Stock Tracking submenu, or a reminder being taken) while
+                // this fragment stays alive in the back stack — writing it back would silently revert
+                // those changes.
+                val currentMedicine = medicine?.id?.let { medicineRepository.fetch(it) }
+                if (currentMedicine != null) {
+                    val newMedicine = currentMedicine.copy(
+                        name = editedFields.name,
+                        iconId = editedFields.iconId,
+                        notes = editedFields.notes
+                    )
+                    if (currentMedicine != newMedicine) {
+                        medicineRepository.update(newMedicine)
+                    }
                 }
             }
         }
@@ -297,12 +311,13 @@ class EditMedicineFragment : Fragment(), IconDialog.Callback {
         }
     }
 
-    private fun buildMedicine(): Medicine? {
-        return medicine?.copy(
-            name = fragmentView.findViewById<EditText>(R.id.editMedicineName).text.toString()
-                .trim(),
+    private data class EditedFields(val name: String, val iconId: Int, val notes: String)
+
+    private fun collectEditedFields(): EditedFields {
+        return EditedFields(
+            name = fragmentView.findViewById<EditText>(R.id.editMedicineName).text.toString().trim(),
             iconId = iconId,
-            notes = notes,
+            notes = notes
         )
     }
 
