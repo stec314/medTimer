@@ -228,17 +228,10 @@ class ManualDose @AssistedInject constructor(
             return name == that.name
         }
 
-        override fun hashCode(): Int {
-            var result = color
-            result = 31 * result + useColor.hashCode()
-            result = 31 * result + iconId
-            result = 31 * result + medicineId
-            result = 31 * result + baseName.hashCode()
-            result = 31 * result + name.hashCode()
-            result = 31 * result + (amount?.hashCode() ?: 0)
-            result = 31 * result + tags.hashCode()
-            return result
-        }
+        // Must stay consistent with equals(), which only compares `name` — hashing more fields than
+        // equals() checks breaks the hashCode contract (two "equal" entries could land in different
+        // hash buckets and the dedup check in getManualDoseEntries() could miss a real duplicate).
+        override fun hashCode(): Int = name.hashCode()
 
     }
 

@@ -15,7 +15,9 @@ object CyclesHelper {
         val dayInCycle = LocalDate.now().toEpochDay() - cycleStartDay.toEpochDay()
         val cycleLength = reminder.consecutiveDays + reminder.pauseDays
 
-        val dayWithinCycle = dayInCycle % cycleLength + 1
+        // Kotlin's % can return a negative remainder for a negative dividend (possible when
+        // cycleStartDay is in the future); normalize into [0, cycleLength) before displaying.
+        val dayWithinCycle = ((dayInCycle % cycleLength) + cycleLength) % cycleLength + 1
         return " ($dayWithinCycle/${reminder.consecutiveDays})"
     }
 }

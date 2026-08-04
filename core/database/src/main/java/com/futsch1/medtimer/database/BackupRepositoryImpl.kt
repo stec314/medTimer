@@ -1,5 +1,6 @@
 package com.futsch1.medtimer.database
 
+import androidx.room.withTransaction
 import com.futsch1.medtimer.core.domain.backup.FullMedicineBackup
 import com.futsch1.medtimer.core.domain.backup.MedicineBackup
 import com.futsch1.medtimer.core.domain.backup.ReminderBackup
@@ -24,6 +25,10 @@ class BackupRepositoryImpl(
 
     override val databaseVersion: Int
         get() = database.version
+
+    override suspend fun <T> runInTransaction(block: suspend () -> T): T {
+        return database.withTransaction { block() }
+    }
 
     override suspend fun getMedicineBackup(): List<FullMedicineBackup> {
         return medicineDao.getAll().map { it.toBackup() }

@@ -30,17 +30,22 @@ class JSONMedicineBackup(
     }
 
     override suspend fun applyBackup(list: List<FullMedicineBackup>) {
-        backupRepository.clearMedicineData()
+        // Wrapped in one transaction: clearing existing data and re-inserting each medicine one by
+        // one is otherwise not atomic — a process death partway through would leave the database
+        // wiped but only partially repopulated, permanently losing the rest.
+        backupRepository.runInTransaction {
+            backupRepository.clearMedicineData()
 
-        var sortOrder = 1.0
+            var sortOrder = 1.0
 
-        for (fullMedicine in list) {
-            if (fullMedicine.medicine.sortOrder == 0.0) {
-                fullMedicine.medicine.sortOrder = sortOrder++
+            for (fullMedicine in list) {
+                if (fullMedicine.medicine.sortOrder == 0.0) {
+                    fullMedicine.medicine.sortOrder = sortOrder++
+                }
+                val medicineId = backupRepository.insertMedicine(fullMedicine.medicine)
+                backupRepository.insertReminders(fullMedicine.reminders, medicineId)
+                processTags(fullMedicine, medicineId)
             }
-            val medicineId = backupRepository.insertMedicine(fullMedicine.medicine)
-            backupRepository.insertReminders(fullMedicine.reminders, medicineId)
-            processTags(fullMedicine, medicineId)
         }
     }
 

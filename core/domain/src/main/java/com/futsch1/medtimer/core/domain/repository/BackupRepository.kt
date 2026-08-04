@@ -8,6 +8,10 @@ import com.futsch1.medtimer.core.domain.backup.TagBackup
 
 interface BackupRepository {
     val databaseVersion: Int
+
+    /** Runs [block] as a single atomic database transaction, rolling back all writes if it throws. */
+    suspend fun <T> runInTransaction(block: suspend () -> T): T
+
     suspend fun getMedicineBackup(): List<FullMedicineBackup>
     suspend fun getReminderEventBackup(): List<ReminderEventBackup>
     suspend fun clearMedicineData()

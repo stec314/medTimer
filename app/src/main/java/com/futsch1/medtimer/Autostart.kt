@@ -43,13 +43,18 @@ class Autostart : BroadcastReceiver() {
         }
 
         hasRestored = true
+        val pendingResult = goAsync()
         applicationScope.launch {
-            autostartService.restoreNotifications()
-            if (persistentDataDataSource.getPendingLocationSnoozes().isNotEmpty()) {
-                geofenceRegistrar.registerHomeGeofence()
+            try {
+                autostartService.restoreNotifications()
+                if (persistentDataDataSource.getPendingLocationSnoozes().isNotEmpty()) {
+                    geofenceRegistrar.registerHomeGeofence()
+                }
+                Log.i(LogTags.AUTOSTART, "Requesting reschedule")
+                ReminderProcessorBroadcastReceiver.requestScheduleNextNotification(context)
+            } finally {
+                pendingResult.finish()
             }
-            Log.i(LogTags.AUTOSTART, "Requesting reschedule")
-            ReminderProcessorBroadcastReceiver.requestScheduleNextNotification(context)
         }
     }
 }

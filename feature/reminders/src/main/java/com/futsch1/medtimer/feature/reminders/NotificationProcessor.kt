@@ -101,10 +101,13 @@ class NotificationProcessor @Inject constructor(
             return
         }
 
-        val remainingRepeats = reminderEventRepository.fetch(reminderNotificationData.reminderEventIds[0])
-            ?.remainingRepeats ?: return
+        // A combined notification repeats as long as ANY of its members still has repeats left, not
+        // just the first id in the list.
+        val anyRemainingRepeats = reminderNotificationData.reminderEventIds.any { id ->
+            reminderEventRepository.fetch(id)?.remainingRepeats?.let { it != 0 } ?: false
+        }
 
-        if (remainingRepeats != 0) {
+        if (anyRemainingRepeats) {
             repeatProcessor.processRepeat(
                 reminderNotificationData,
                 preferences.repeatDelay

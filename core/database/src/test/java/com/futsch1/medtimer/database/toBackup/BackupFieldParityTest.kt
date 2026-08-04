@@ -49,7 +49,6 @@ internal class BackupFieldParityTest {
                 "reminderEventId", // autoGenerate primary key
                 "notificationId", // runtime notification handle, not historical data
                 "remainingRepeats", // runtime scheduling state
-                "stockHandled", // runtime processing flag, re-derived on restore
                 "askForAmount", // runtime UI flag, re-derived from the reminder
             )
         )

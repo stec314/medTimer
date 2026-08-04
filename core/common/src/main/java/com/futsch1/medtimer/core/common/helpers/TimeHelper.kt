@@ -72,9 +72,12 @@ object TimeHelper {
      * @return Time stamp in seconds since epoch with given minutes
      */
     fun changeTimeMinutes(time: Instant, localMinutes: Int): Instant {
-        val zonedDateTime = time.atZone(ZoneId.systemDefault())
-        val localDateTime = zonedDateTime.withHour(localMinutes / 60).withMinute(localMinutes % 60)
-        return localDateTime.toInstant()
+        // Resolved the same way as instantFromDateAndMinutes() rather than via ZonedDateTime.withHour/
+        // withMinute: those auto-shift forward by the DST gap length when the result falls in a spring-
+        // forward gap, which disagreed with instantFromDateAndMinutes() for the same nominal local time.
+        val localDate = time.atZone(ZoneId.systemDefault()).toLocalDate()
+        val localDateTime = LocalDateTime.of(localDate, LocalTime.of(localMinutes / 60, localMinutes % 60))
+        return localDateTime.toInstant(ZoneId.systemDefault().rules.getOffset(localDateTime))
     }
 
     fun instantAtStartOfDay(localDate: LocalDate, zoneId: ZoneId): Instant {

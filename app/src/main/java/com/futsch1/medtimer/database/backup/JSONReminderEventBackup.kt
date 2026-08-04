@@ -17,7 +17,9 @@ class JSONReminderEventBackup(
     }
 
     override suspend fun applyBackup(list: List<ReminderEventBackup>) {
-        backupRepository.clearReminderEvents()
-        backupRepository.insertReminderEvents(list)
+        backupRepository.runInTransaction {
+            backupRepository.clearReminderEvents()
+            backupRepository.insertReminderEvents(list)
+        }
     }
 }

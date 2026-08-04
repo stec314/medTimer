@@ -57,6 +57,14 @@ class VariableAmountHandler @Inject constructor(
                 }
                 .show()
         }
+
+        if (reminderEvents.isNotEmpty()) {
+            // Fixed-dose reminders bundled alongside a variable-amount one in the same notification
+            // group: mark them taken too, instead of silently dropping them.
+            activity.lifecycleScope.launch(ioDispatcher) {
+                notificationProcessor.setReminderEventStatus(ReminderEvent.ReminderStatus.TAKEN, reminderEvents)
+            }
+        }
     }
 
     private suspend fun touchReminderEvent(reminderEvent: ReminderEvent) {

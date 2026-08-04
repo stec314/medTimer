@@ -224,10 +224,8 @@ class PreferencesDataSource @Inject constructor(
                         else -> BackupInterval.entries[v?.toIntOrNull() ?: 0]
                     }
                 },
-            automaticBackupDirectory = sharedPreferences.getString(
-                AUTOMATIC_BACKUP_DIRECTORY,
-                default.automaticBackupDirectory.toString()
-            )?.toUri(),
+            automaticBackupDirectory = sharedPreferences.getString(AUTOMATIC_BACKUP_DIRECTORY, null)?.toUri()
+                ?: default.automaticBackupDirectory,
             locationBasedSnooze = sharedPreferences.getBoolean(
                 LOCATION_SNOOZE_ENABLED,
                 default.locationBasedSnooze

@@ -76,9 +76,10 @@ class ReminderNotificationProcessor @Inject constructor(
         // Show notifications for all reminders
         showNotification(reminderNotification)
 
-        // Schedule remaining repeats for all reminders
-        val remainingRepeats = reminderNotification.reminderNotificationParts[0].reminderEvent.remainingRepeats
-        if (remainingRepeats != 0 && preferencesDataSource.preferences.value.repeatReminders) {
+        // Schedule remaining repeats for all reminders. A combined notification repeats as long as
+        // ANY of its members still has repeats left, not just the first one in the list.
+        val anyRemainingRepeats = reminderNotification.reminderNotificationParts.any { it.reminderEvent.remainingRepeats != 0 }
+        if (anyRemainingRepeats && preferencesDataSource.preferences.value.repeatReminders) {
             repeatProcessor.processRepeat(
                 reminderNotification.reminderNotificationData,
                 preferencesDataSource.preferences.value.repeatDelay

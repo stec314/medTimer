@@ -58,11 +58,13 @@ class ShowReminderNotificationProcessor @Inject constructor(
     private fun getNotificationData(reminderNotificationData: ReminderNotificationData): ReminderNotificationData? {
         for (notification in notificationManager.activeNotifications) {
             val notificationData = ReminderNotificationData.fromBundle(notification.notification.extras)
-            if (notificationData.notificationId == reminderNotificationData.notificationId || notificationData.reminderEventIds.all {
-                    reminderNotificationData.reminderEventIds.contains(
-                        it
-                    )
-                }) {
+            // notificationData.reminderEventIds.all{} is vacuously true for an empty list — guard
+            // against that so a notification with no ids can't spuriously match every request.
+            if (notificationData.notificationId == reminderNotificationData.notificationId ||
+                (notificationData.reminderEventIds.isNotEmpty() && notificationData.reminderEventIds.all {
+                    reminderNotificationData.reminderEventIds.contains(it)
+                })
+            ) {
                 return notificationData
             }
         }

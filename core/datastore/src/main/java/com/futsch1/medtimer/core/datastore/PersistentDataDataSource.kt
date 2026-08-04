@@ -176,7 +176,11 @@ class PersistentDataDataSource @Inject constructor(
             lastCustomDose = medTimerSharedPreferences.getString(LAST_CUSTOM_DOSE, null) ?: default.lastCustomDose,
             lastCustomDoseAmount = medTimerSharedPreferences.getString(LAST_CUSTOM_DOSE_AMOUNT, null) ?: default.lastCustomDoseAmount,
             filterTags = medTimerSharedPreferences.getStringSet(FILTER_TAGS, emptySet()) ?: emptySet(),
-            checkedFilters = medTimerSharedPreferences.getStringSet(CHECKED_FILTERS, emptySet())?.map { OverviewFilter.valueOf(it) }?.toSet() ?: emptySet()
+            // Ignore any stored name that no longer maps to a filter (e.g. renamed/removed across an
+            // app update) instead of crashing — this runs eagerly at startup.
+            checkedFilters = medTimerSharedPreferences.getStringSet(CHECKED_FILTERS, emptySet())
+                ?.mapNotNull { name -> runCatching { OverviewFilter.valueOf(name) }.getOrNull() }
+                ?.toSet() ?: emptySet()
         )
     }
 

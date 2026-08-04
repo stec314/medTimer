@@ -9,6 +9,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.mockito.Mockito
+import org.mockito.kotlin.any
 
 @RunWith(Parameterized::class)
 class JSONBackupFuzzTest(private val json: String) {
@@ -30,6 +31,11 @@ class JSONBackupFuzzTest(private val json: String) {
     @Test
     fun fuzzTestMedicineBackup() {
         val backupRepository = Mockito.mock<BackupRepository>()
+        Mockito.`when`(runBlocking { backupRepository.runInTransaction<Any?>(any()) }).thenAnswer { invocation ->
+            @Suppress("UNCHECKED_CAST")
+            val block = invocation.getArgument<suspend () -> Any?>(0)
+            runBlocking { block() }
+        }
 
         checkBackup(JSONMedicineBackup(backupRepository), json)
         checkBackup(JSONReminderEventBackup(backupRepository), json)

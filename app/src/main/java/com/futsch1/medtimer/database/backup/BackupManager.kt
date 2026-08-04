@@ -237,28 +237,36 @@ class BackupManager @AssistedInject constructor(
     }
 
     private suspend fun restoreCombinedBackup(json: String): Boolean {
-        var restoreSuccessful = false
+        var anyKeyPresent = false
+        var allSucceeded = true
         try {
             val rootElement = JsonParser.parseString(json).getAsJsonObject()
             if (rootElement.has(MEDICINE_KEY)) {
-                restoreSuccessful = restoreBackup(
+                anyKeyPresent = true
+                // restoreBackup(...) must run unconditionally for every present key — with `&&`
+                // short-circuiting on the left-hand accumulator, a failed/absent medicine section
+                // would skip restoring the event section entirely.
+                val medicineRestored = restoreBackup(
                     rootElement[MEDICINE_KEY].toString(),
                     JSONMedicineBackup(backupRepository)
                 )
+                allSucceeded = allSucceeded && medicineRestored
             }
             if (rootElement.has(EVENT_KEY)) {
-                restoreSuccessful = restoreSuccessful && restoreBackup(
+                anyKeyPresent = true
+                val eventsRestored = restoreBackup(
                     rootElement[EVENT_KEY].toString(),
                     JSONReminderEventBackup(backupRepository)
                 )
+                allSucceeded = allSucceeded && eventsRestored
             }
             if (rootElement.has(SETTINGS_KEY)) {
                 JSONSettingsBackup(preferencesDataSource).applyBackup(rootElement[SETTINGS_KEY].toString())
             }
         } catch (_: JsonSyntaxException) {
-            restoreSuccessful = false
+            return false
         }
-        return restoreSuccessful
+        return anyKeyPresent && allSucceeded
     }
 
     private suspend fun <T> restoreBackup(json: String, backup: JSONBackup<T>): Boolean {
